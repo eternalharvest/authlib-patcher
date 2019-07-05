@@ -1,0 +1,59 @@
+apply plugin: 'java-library'
+apply plugin: 'java-decompiler'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+group = 'com.mojang'
+version = '1.5.25'
+
+ext.authlib = file(System.getProperty("user.home") + "/.minecraft/libraries/com/mojang/authlib/${version}/authlib-${version}.jar")
+
+task check_authlib {
+    doFirst {
+        if (!project.ext.authlib.exists()) {
+            throw new FileNotFoundException("file authlib-${version}.jar not found! please run minecraft 1.12.2 at least once!!")
+        }
+    }
+}
+
+task extract(type: Copy, dependsOn: check_authlib) {
+    from zipTree(project.ext.authlib)
+    include('META-INF/**/*')
+    include('yggdrasil_session_pubkey.der')
+    into file('src/main/resources/')
+}
+
+processResources.dependsOn extract
+compileJava.dependsOn decompile
+
+clean.doLast {
+    file('src/main').deleteDir()
+}
+
+repositories {
+    mavenCentral()
+}
+
+decompileJava {
+    options.setInputJar project.ext.authlib
+    options.setOutputDirectory "src/main/java"
+    options.setForceExplicitImports true
+}
+
+compileJava {
+    options.compilerArgs += ['-XDignore.symbol.file']
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+}
+
+dependencies {
+    compile "com.google.guava:guava:17.0"
+    compile "org.apache.commons:commons-lang3:3.3.2"
+    compile "org.apache.logging.log4j:log4j-core:2.0"
+    compile "commons-codec:commons-codec:1.9"
+    compile "org.apache.logging.log4j:log4j-api:2.0-beta9"
+    compile "com.google.code.gson:gson:2.2.4"
+    compile "com.google.code.findbugs:jsr305:2.0.1"
+    compile "commons-io:commons-io:2.4"
+}

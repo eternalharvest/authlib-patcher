@@ -1,0 +1,7 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.bitbucket.mstrobel:procyon-compilertools:0.5.36"
+}
