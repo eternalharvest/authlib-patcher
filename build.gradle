@@ -24,8 +24,19 @@ task extract(type: Copy, dependsOn: check_authlib) {
     into file('src/main/resources/')
 }
 
+task patch(dependsOn: decompile) {
+    doLast {
+        fileTree(dir: 'patch', include: '**/*.patch').getFiles().sort().each{ File file ->
+            if (file.isFile()) {
+                println "applying ${file.name}..."
+                ant.patch(dir: projectDir, patchfile: file, strip: 1)
+            }
+        }
+    }
+}
+
 processResources.dependsOn extract
-compileJava.dependsOn decompile
+compileJava.dependsOn patch
 
 clean.doLast {
     file('src/main').deleteDir()

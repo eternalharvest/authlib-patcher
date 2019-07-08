@@ -1,0 +1,122 @@
+diff --git a/src/main/java/com/mojang/authlib/BaseUserAuthentication.java b/src/main/java/com/mojang/authlib/BaseUserAuthentication.java
+index c77869a..41d6bb6 100644
+--- a/src/main/java/com/mojang/authlib/BaseUserAuthentication.java
++++ b/src/main/java/com/mojang/authlib/BaseUserAuthentication.java
+@@ -92,16 +92,16 @@ public abstract class BaseUserAuthentication implements UserAuthentication
+         }
+         if (credentials.containsKey("userProperties")) {
+             try {
+-                final List<Map<String, String>> list = credentials.get("userProperties");
++                final List<Map<String, String>> list = (List<Map<String, String>>)credentials.get("userProperties");
+                 for (final Map<String, String> propertyMap : list) {
+                     final String name = propertyMap.get("name");
+                     final String value = propertyMap.get("value");
+                     final String signature = propertyMap.get("signature");
+                     if (signature == null) {
+-                        this.getModifiableUserProperties().put((Object)name, (Object)new Property(name, value));
++                        this.getModifiableUserProperties().put(name, new Property(name, value));
+                     }
+                     else {
+-                        this.getModifiableUserProperties().put((Object)name, (Object)new Property(name, value, signature));
++                        this.getModifiableUserProperties().put(name, new Property(name, value, signature));
+                     }
+                 }
+             }
+@@ -113,16 +113,16 @@ public abstract class BaseUserAuthentication implements UserAuthentication
+             final GameProfile profile = new GameProfile(UUIDTypeAdapter.fromString(String.valueOf(credentials.get("uuid"))), String.valueOf(credentials.get("displayName")));
+             if (credentials.containsKey("profileProperties")) {
+                 try {
+-                    final List<Map<String, String>> list2 = credentials.get("profileProperties");
++                    final List<Map<String, String>> list2 = (List<Map<String, String>>)credentials.get("profileProperties");
+                     for (final Map<String, String> propertyMap2 : list2) {
+                         final String name2 = propertyMap2.get("name");
+                         final String value2 = propertyMap2.get("value");
+                         final String signature2 = propertyMap2.get("signature");
+                         if (signature2 == null) {
+-                            profile.getProperties().put((Object)name2, (Object)new Property(name2, value2));
++                            profile.getProperties().put(name2, new Property(name2, value2));
+                         }
+                         else {
+-                            profile.getProperties().put((Object)name2, (Object)new Property(name2, value2, signature2));
++                            profile.getProperties().put(name2, new Property(name2, value2, signature2));
+                         }
+                     }
+                 }
+diff --git a/src/main/java/com/mojang/authlib/properties/PropertyMap.java b/src/main/java/com/mojang/authlib/properties/PropertyMap.java
+index e73e95c..ba0a550 100644
+--- a/src/main/java/com/mojang/authlib/properties/PropertyMap.java
++++ b/src/main/java/com/mojang/authlib/properties/PropertyMap.java
+@@ -20,7 +20,7 @@ public class PropertyMap extends ForwardingMultimap<String, Property>
+     private final Multimap<String, Property> properties;
+     
+     public PropertyMap() {
+-        this.properties = (Multimap<String, Property>)LinkedHashMultimap.create();
++        this.properties = LinkedHashMultimap.create();
+     }
+     
+     protected Multimap<String, Property> delegate() {
+@@ -36,7 +36,7 @@ public class PropertyMap extends ForwardingMultimap<String, Property>
+                 for (final Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                     if (entry.getValue() instanceof JsonArray) {
+                         for (final JsonElement element : (JsonArray)entry.getValue()) {
+-                            result.put((Object)entry.getKey(), (Object)new Property(entry.getKey(), element.getAsString()));
++                            result.put(entry.getKey(), new Property(entry.getKey(), element.getAsString()));
+                         }
+                     }
+                 }
+@@ -48,10 +48,10 @@ public class PropertyMap extends ForwardingMultimap<String, Property>
+                         final String name = object2.getAsJsonPrimitive("name").getAsString();
+                         final String value = object2.getAsJsonPrimitive("value").getAsString();
+                         if (object2.has("signature")) {
+-                            result.put((Object)name, (Object)new Property(name, value, object2.getAsJsonPrimitive("signature").getAsString()));
++                            result.put(name, new Property(name, value, object2.getAsJsonPrimitive("signature").getAsString()));
+                         }
+                         else {
+-                            result.put((Object)name, (Object)new Property(name, value));
++                            result.put(name, new Property(name, value));
+                         }
+                     }
+                 }
+diff --git a/src/main/java/com/mojang/authlib/yggdrasil/YggdrasilGameProfileRepository.java b/src/main/java/com/mojang/authlib/yggdrasil/YggdrasilGameProfileRepository.java
+index 32e6103..e045de7 100644
+--- a/src/main/java/com/mojang/authlib/yggdrasil/YggdrasilGameProfileRepository.java
++++ b/src/main/java/com/mojang/authlib/yggdrasil/YggdrasilGameProfileRepository.java
+@@ -34,14 +34,14 @@ public class YggdrasilGameProfileRepository implements GameProfileRepository
+     
+     @Override
+     public void findProfilesByNames(final String[] names, final Agent agent, final ProfileLookupCallback callback) {
+-        final Set<String> criteria = (Set<String>)Sets.newHashSet();
++        final Set<String> criteria = Sets.newHashSet();
+         for (final String name : names) {
+             if (!Strings.isNullOrEmpty(name)) {
+                 criteria.add(name.toLowerCase());
+             }
+         }
+         final int page = 0;
+-        for (final List<String> request : Iterables.partition((Iterable)criteria, 2)) {
++        for (final List<String> request : Iterables.partition((Iterable<String>)criteria, 2)) {
+             int failCount = 0;
+             boolean failed;
+             do {
+diff --git a/src/main/java/com/mojang/authlib/yggdrasil/YggdrasilMinecraftSessionService.java b/src/main/java/com/mojang/authlib/yggdrasil/YggdrasilMinecraftSessionService.java
+index 788b005..771de3f 100644
+--- a/src/main/java/com/mojang/authlib/yggdrasil/YggdrasilMinecraftSessionService.java
++++ b/src/main/java/com/mojang/authlib/yggdrasil/YggdrasilMinecraftSessionService.java
+@@ -111,7 +111,7 @@ public class YggdrasilMinecraftSessionService extends HttpMinecraftSessionServic
+     
+     @Override
+     public Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> getTextures(final GameProfile profile, final boolean requireSecure) {
+-        final Property textureProperty = (Property)Iterables.getFirst((Iterable)profile.getProperties().get((Object)"textures"), (Object)null);
++        final Property textureProperty = (Property)Iterables.getFirst((Iterable<Property>)profile.getProperties().get("textures"), null);
+         if (textureProperty == null) {
+             return new HashMap<MinecraftProfileTexture.Type, MinecraftProfileTexture>();
+         }
+@@ -152,7 +152,7 @@ public class YggdrasilMinecraftSessionService extends HttpMinecraftSessionServic
+             return profile;
+         }
+         if (!requireSecure) {
+-            return (GameProfile)this.insecureProfiles.getUnchecked((Object)profile);
++            return (GameProfile)this.insecureProfiles.getUnchecked(profile);
+         }
+         return this.fillGameProfile(profile, true);
+     }
