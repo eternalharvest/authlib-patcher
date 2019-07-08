@@ -1,0 +1,38 @@
+diff --git a/src/main/java/com/mojang/authlib/properties/Property.java b/src/main/java/com/mojang/authlib/properties/Property.java
+index ef15a27..9b654a8 100644
+--- a/src/main/java/com/mojang/authlib/properties/Property.java
++++ b/src/main/java/com/mojang/authlib/properties/Property.java
+@@ -1,10 +1,5 @@
+ package com.mojang.authlib.properties;
+ 
+-import java.security.SignatureException;
+-import java.security.InvalidKeyException;
+-import java.security.NoSuchAlgorithmException;
+-import org.apache.commons.codec.binary.Base64;
+-import java.security.Signature;
+ import java.security.PublicKey;
+ 
+ public class Property
+@@ -40,21 +35,6 @@ public class Property
+     }
+     
+     public boolean isSignatureValid(final PublicKey publicKey) {
+-        try {
+-            final Signature signature = Signature.getInstance("SHA1withRSA");
+-            signature.initVerify(publicKey);
+-            signature.update(this.value.getBytes());
+-            return signature.verify(Base64.decodeBase64(this.signature));
+-        }
+-        catch (NoSuchAlgorithmException e) {
+-            e.printStackTrace();
+-        }
+-        catch (InvalidKeyException e2) {
+-            e2.printStackTrace();
+-        }
+-        catch (SignatureException e3) {
+-            e3.printStackTrace();
+-        }
+-        return false;
++        return true;
+     }
+ }
